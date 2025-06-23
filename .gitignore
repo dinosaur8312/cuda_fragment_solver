@@ -1,0 +1,20 @@
+# Build artifacts
+/build/
+/bin/
+/CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# CUDA artifacts
+*.cu.o
+*.ptx
+*.cubin
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# OS crap
+.DS_Store
+Thumbs.db
