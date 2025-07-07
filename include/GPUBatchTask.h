@@ -68,4 +68,5 @@ private:
     void uploadToDevice();
     void gather();
     void solve();
+    void scatter();
 };

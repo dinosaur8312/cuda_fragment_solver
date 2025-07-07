@@ -13,7 +13,7 @@ GEMMSolver::GEMMSolver()
 
 GEMMSolver::~GEMMSolver()
 {
-    std::cout << "Destroying GEMMSolver..." << std::endl;
+  //  std::cout << "Destroying GEMMSolver..." << std::endl;
   //  cudaStreamSynchronize(m_stream); // Ensure all operations on the stream are completed before cleanup
     cublasDestroy(m_handle);
 }
@@ -39,7 +39,7 @@ void GEMMSolver::gemm(const cuComplex *A, const cuComplex *B, cuComplex *C,
     const cuComplex beta = make_cuComplex(0.0f, 0.0f);
     //print all array pointers
     //printf("GEMMSolver::gemm: A: %p, B: %p, C: %p\n", (void*)A, (void*)B, (void*)C);
-    printf("GEMMSolver::gemm: M: %d, K: %d, N: %d\n", M, K, N);
+    //printf("GEMMSolver::gemm: M: %d, K: %d, N: %d\n", M, K, N);
 
 
     cublasCgemm(m_handle,

@@ -16,7 +16,7 @@ TaskManager::TaskManager(int nStreams, int nRHS, int matrixSize)
     size_t sizeB = m_nRHS * m_matrixSize * sizeof(cuComplex);
     h_globalMatB_ = (cuComplex*)malloc(sizeB);
 
-    printf("h_globalMatB_ = %p\n", h_globalMatB_);
+    //printf("h_globalMatB_ = %p\n", h_globalMatB_);
 
     //init global matrix B to 1.0
     cuComplex one = make_cuComplex(1.0f, 0.0f);
@@ -49,8 +49,8 @@ void TaskManager::addTask(GPUTask* task) {
 }
 
 void TaskManager::runAll() {
-    int max_num_streams = std::thread::hardware_concurrency();
-    printf("Max number of streams: %d\n", max_num_streams);
+   // int max_num_streams = std::thread::hardware_concurrency();
+   // printf("Max number of streams: %d\n", max_num_streams);
     //
    // int numStreams = 8; // Or use m_tasks.size() or a parameter
     StreamThreadPool pool(m_nStreams, m_nRHS, m_matrixSize, m_tasks, h_globalMatB_);
@@ -59,7 +59,7 @@ void TaskManager::runAll() {
 }
 
 void TaskManager::runAllBatch() {
-    printf("Running all batch tasks...\n");
+    //printf("Running all batch tasks...\n");
     BatchStreamThreadPool pool(m_nStreams, m_nRHS, m_matrixSize, m_batch_tasks, h_globalMatB_);
     pool.wait();
     // Run all batch tasks in parallel
@@ -71,6 +71,9 @@ void TaskManager::loadTasksFromMIL(const std::string &filePath) {
     for (const auto &[M, N, R] : data) {
         //printf("Adding task with M: %d, N: %d, R: %d\n", M, N, R);
         auto task = new GPUTask(id++, M, N, R, m_matrixSize, m_nRHS);
+
+        cost += M * N; // Accumulate 
+        //cost += R == 0 ? (M * N) : (M * R + N * R); // Accumulate cost for batch decision
         //printf("Task created with ID: %d\n", task->id());
         if (((R==0)&&(M*N<BATCH_DIM_THRESHOLD)) 
         ||(R>0 && (M*R<BATCH_DIM_THRESHOLD) && (N*R<BATCH_DIM_THRESHOLD)) )

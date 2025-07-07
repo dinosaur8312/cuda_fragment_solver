@@ -10,6 +10,7 @@
 #include <tuple>
 #include <map>
 
+
 #define BATCH_DIM_THRESHOLD  16384 // Threshold for batch dimension, adjust as needed;
 
 
@@ -23,6 +24,7 @@ public:
     void runAll();
     void runAllBatch();
     void loadTasksFromMIL(const std::string& filePath);
+    size_t getCost() const { return cost; }
 
 private:
     int m_nRHS;
@@ -34,7 +36,7 @@ private:
     int m_nStreams;
     cuComplex *h_globalMatB_ = nullptr; // Host global matrix B shared across all threads
 
-    
+    size_t cost = 0;
 
     //std::unique_ptr<GEMMSolver> m_solver;
     //std::unique_ptr<GPUWorkspace> m_workspace;

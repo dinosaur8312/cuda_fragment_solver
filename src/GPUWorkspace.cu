@@ -15,13 +15,13 @@ GPUWorkspace::GPUWorkspace(int nRHS, int matrixSize)
 
 GPUWorkspace::~GPUWorkspace()
 {
-    std::cout << "GPUWorkspace::~GPUWorkspace() start" << std::endl;
+    //std::cout << "GPUWorkspace::~GPUWorkspace() start" << std::endl;
     //cudaStreamSynchronize(m_stream); // Ensure all operations on the stream are completed before cleanup
     //releaseLocalMats();
     releaseGlobalMats();
     // If you add global matrix management, releaseGlobal();
 
-    std::cout << "GPUWorkspace::~GPUWorkspace() end" << std::endl;
+   // std::cout << "GPUWorkspace::~GPUWorkspace() end" << std::endl;
 }
 
 void GPUWorkspace::allocateGlobalMats()
@@ -35,13 +35,13 @@ void GPUWorkspace::allocateGlobalMats()
 
 void GPUWorkspace::releaseGlobalMats()
 {
-    std::cout << "GPUWorkspace::releaseGlobalMats() start" << std::endl;
+    //std::cout << "GPUWorkspace::releaseGlobalMats() start" << std::endl;
     if (h_globalMatC_)
     {
         free(h_globalMatC_);
         h_globalMatC_ = nullptr;
     }
-    std::cout << "GPUWorkspace::releaseGlobalMats() end" << std::endl;
+   // std::cout << "GPUWorkspace::releaseGlobalMats() end" << std::endl;
 }
 
 void GPUWorkspace::releaseLocalMats()

@@ -53,12 +53,12 @@ StreamThreadPool::~StreamThreadPool()
         if (t.joinable()) t.join();
     }
 
-    for (int i = 0; i < num_workers_; ++i) {
+    //for (int i = 0; i < num_workers_; ++i) {
       //  delete solvers_[i]; // Clean up GEMMSolver if it was created
        // delete ws_[i];
       //  checkCudaErrors(cudaStreamDestroy(streams_[i])); 
-    }
-    std::cout << "StreamThreadPool destructor" << std::endl;
+    //}
+  //  std::cout << "StreamThreadPool destructor" << std::endl;
 }
 
 
@@ -105,10 +105,10 @@ void StreamThreadPool::workerLoop(int worker_id)
             task->execute(); // Not running actual computation for now
             delete task; // Clean up if task was copied
             in_flight_tasks_.fetch_sub(1);
-            printf("Thread %d finished task execution. Tasks in flight: %d\n", worker_id, in_flight_tasks_.load());
+           // printf("Thread %d finished task execution. Tasks in flight: %d\n", worker_id, in_flight_tasks_.load());
         }
     }
-    printf("Thread %d finished worker loop.\n", worker_id);
+    printf("Thread %d done.\n", worker_id);
     ws->releaseLocalMats(); // Release any local matrices allocated in the workspace
     delete ws; // Clean up the workspace
     delete solver; // Clean up the GEMMSolver

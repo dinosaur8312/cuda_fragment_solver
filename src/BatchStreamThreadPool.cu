@@ -20,7 +20,7 @@ BatchStreamThreadPool::BatchStreamThreadPool(int num_workers, int nRHS, int matr
         //std::lock_guard<std::mutex> lock(queue_mutex_);
     for (const auto& pair : batch_tasks)
     {
-        const auto& dims = pair.first;
+ //       const auto& dims = pair.first;
         GPUBatchTask* task = pair.second;
         task_queue_.push(task);
         ++in_flight_tasks_;
@@ -48,7 +48,7 @@ BatchStreamThreadPool::~BatchStreamThreadPool()
         if (t.joinable()) t.join();
     }
 
-    std::cout << "BatchStreamThreadPool destructor" << std::endl;
+  //  std::cout << "BatchStreamThreadPool destructor" << std::endl;
 }
 
 
@@ -102,11 +102,11 @@ void BatchStreamThreadPool::workerLoop(int worker_id)
             task->execute(); 
             delete task; // Clean up if task was copied
             in_flight_tasks_.fetch_sub(1);
-            printf("Thread %d finished batch task execution. Batch tasks in flight: %d\n", worker_id, in_flight_tasks_.load());
-            fflush(stdout); // Ensure logs are printed immediately
+           // printf("Thread %d finished batch task execution. Batch tasks in flight: %d\n", worker_id, in_flight_tasks_.load());
+            //fflush(stdout); // Ensure logs are printed immediately
         }
     }
-    printf("Thread %d finished batch worker loop.\n", worker_id);
+    printf("Thread %d batch done.\n", worker_id);
     //ws->releaseLocalMats(); // Release any local matrices allocated in the workspace
     delete ws; // Clean up the workspace
     delete solver; // Clean up the GEMMSolver

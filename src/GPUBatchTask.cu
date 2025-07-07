@@ -88,7 +88,7 @@ void GPUBatchTask::uploadToDevice()
 
 void GPUBatchTask::gather()
 {
-    for(int itask=0; itask<m_tasks.size(); itask++)
+    for(int itask=0; itask<(int)(m_tasks.size()); itask++)
     {
         int N = m_tasks[itask]->N();
         cuComplex *h_tempB = h_tempB_ + itask * m_N_pad*m_nRHS; // Pinned memory for temporary B matrix
@@ -107,18 +107,39 @@ void GPUBatchTask::gather()
 
 }
 
+void GPUBatchTask::scatter()
+{
+    cudaMemcpyAsync(h_tempC_, d_localC_, m_nRHS * m_M_pad * m_tasks.size() * sizeof(cuComplex), cudaMemcpyDeviceToHost, m_stream);
+
+    for(int itask=0; itask<(int)(m_tasks.size()); itask++)
+    {
+        int M = m_tasks[itask]->M();
+        cuComplex *h_tempC = h_tempC_ + itask * m_M_pad*m_nRHS; // Pinned memory for temporary C matrix
+        const std::vector<int> &sinkMap = m_tasks[itask]->getSinkMap();
+        for(int j=0; j<m_nRHS; j++)
+        {
+            for(int i=0; i<M; i++)
+            {
+                // Scatter from temporary pinned memory to global matrix C
+                h_globalMatC_[sinkMap[i] + j * m_matrixSize] += h_tempC[j * m_M_pad + i];
+            }
+        }
+    }
+}
+
 void GPUBatchTask::execute()
 {
    // generateRandomMaps(m_matrixSize);
     for (auto task : m_tasks) {
-        task->setStream(m_stream);
-        printf("Executing task %d\n", task->id());
+        //task->setStream(m_stream);
+        //printf("Executing task %d\n", task->id());
         task->generateRandomMaps(m_matrixSize);
     }
     generateRandomMatrices();
     uploadToDevice();
     gather();
     solve();
+    scatter();
 
 
     return;

@@ -13,7 +13,7 @@ GEMMBatchSolver::GEMMBatchSolver()
 
 GEMMBatchSolver::~GEMMBatchSolver()
 {
-    std::cout << "Destroying GEMMBatchSolver..." << std::endl;
+    //std::cout << "Destroying GEMMBatchSolver..." << std::endl;
   //  cudaStreamSynchronize(m_stream); // Ensure all operations on the stream are completed before cleanup
     cublasDestroy(m_handle);
 }
