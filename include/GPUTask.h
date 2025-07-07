@@ -38,6 +38,7 @@ public:
     void setWorkspace(GPUWorkspace *workspace);
 
     void uploadToDevice();
+    void solve();
 private:
     void generateRandomMaps(int matrixSize);
     void generateRandomMatrices();
@@ -60,6 +61,17 @@ private:
 
     GEMMSolver *m_solver = nullptr;
     GPUWorkspace *m_workspace = nullptr;
+
+
+    cuComplex *h_globalMatB_ = nullptr; // Host global matrix B shared across all threads
+    cuComplex *h_globalMatC_ = nullptr; // Host global matrix C shared across all threads
+    // Temporary matrices for gather/scatter operations
+    cuComplex *d_localB = nullptr;
+    cuComplex *d_localC = nullptr;
+    cuComplex *d_localMat = nullptr;
+    cuComplex *h_tempB = nullptr;
+    cuComplex *h_tempC = nullptr;
+
    /*
 
     cuComplex *getLocalB()
@@ -85,5 +97,5 @@ private:
         return m_workspace ? m_workspace->getPinnedTempC(m_M) : nullptr;
     }
 */
-    //void gather();
+    void gather();
 };

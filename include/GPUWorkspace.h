@@ -7,20 +7,25 @@
 
 class GPUWorkspace {
 public:
-    GPUWorkspace(int nRHS, int matrixSize, cudaStream_t  stream);
+    GPUWorkspace(int nRHS, int matrixSize);
     ~GPUWorkspace();
 
     void ensureSize(int M, int N, int R);
 
-    cuComplex* getLocalB(const int N = -1);
-    cuComplex* getLocalC(const int M = -1);
-    cuComplex* getLocalMat(const int R = -1);
+    cuComplex* getDenseMat() const { return d_denseMat; }
+    cuComplex* getQmat() const { return d_Qmat; }
+    cuComplex* getRmat() const { return d_Rmat; }
+    cuComplex* getLocalB() const { return d_localB_; }
+    cuComplex* getLocalC() const { return d_localC_; }
+    cuComplex* getLocalMat() const { return d_localMat_; }
 
-    cuComplex* getPinnedTempB(const int N = -1);
-    cuComplex* getPinnedTempC(const int M = -1);
+    cuComplex* getPinnedTempB() const { return h_tempB_; }
+    cuComplex* getPinnedTempC() const { return h_tempC_; }
 
-    cuComplex* getGlobalMatB();
-    cuComplex* getGlobalMatC();
+    cuComplex* getGlobalMatB(){ return h_globalMatB_; }
+    cuComplex* getGlobalMatC(){ return h_globalMatC_; }
+
+    void setGlobalMatB(cuComplex* matB) { h_globalMatB_ = matB; }
 
     size_t getAvailableGPUMemory() const;
 
@@ -28,6 +33,7 @@ public:
     cudaStream_t getStream() const { return m_stream; }
 
     void printMemoryInfo() const;
+    void releaseLocalMats();
 
 private:
 
@@ -35,9 +41,14 @@ private:
     int m_nRHS;
     int m_matrixSize;
 
-    int maxM_;
-    int maxN_;
-    int maxR_;
+    //int maxM_;
+    //int maxN_;
+    //int maxR_;
+
+    cuComplex *d_denseMat = nullptr;
+    cuComplex *d_Qmat = nullptr;
+    cuComplex *d_Rmat = nullptr;
+
 
     cuComplex* d_localB_;
     cuComplex* d_localC_;
@@ -51,12 +62,15 @@ private:
     cuComplex* h_globalMatB_ = nullptr;
     cuComplex* h_globalMatC_ = nullptr;
 
-    void allocateLocalMats();
-    void releaseLocalMats();
+    size_t m_denseMatSize;
+    size_t m_localMatSize;    
+    size_t m_localBSize;    
+    size_t m_localCSize;    
+    size_t m_QmatSize;    
+    size_t m_RmatSize;    
+
 
     void allocateGlobalMats();
     void releaseGlobalMats();
 
-    // Global matrix management
-    void ensureGlobalSize(int M, int N, int R);
 };

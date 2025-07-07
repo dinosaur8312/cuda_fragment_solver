@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     std::string milFile = argv[1];
 
     // Parameters
-    int numStreams = 4;      // Number of CUDA streams to use
+    int numStreams = 1;      // Number of CUDA streams to use
     int nRHS = 4;            // Number of right-hand sides per GEMM
     int matrixSize = 2048;   // Size of the global matrix (square, rows × cols)
 

@@ -1,9 +1,11 @@
 #include "GPUTask.h"
 #include "GEMMSolver.h"
 #include "GPUWorkspace.h"
-#include <thrust/device_ptr.h>
-#include <thrust/gather.h>
+//#include <thrust/device_ptr.h>
+//#include <thrust/gather.h>
 #include <cuda_runtime.h>
+#include <cuComplex.h>
+#include <helper_cuda.h>
 #include <cstdlib>
 #include <cassert>
 
@@ -12,26 +14,13 @@ GPUTask::GPUTask(int id, int M, int N, int R, int matrixSize, int nRHS)
 {
     //printf("Creating GPUTask with ID: %d, M: %d, N: %d, R: %d, matrixSize: %d, nRHS: %d\n",
     //       m_id, m_M, m_N, m_R, m_matrixSize, m_nRHS);
-    generateRandomMaps(matrixSize);
-    //printf("Random maps generated for task ID: %d\n", m_id);
-    generateRandomMatrices();
-    //printf("Random matrices generated for task ID: %d\n", m_id);
-    uploadToDevice();
+
 }
 
 GPUTask::~GPUTask()
 {
     std::cout << "Destroying GPUTask with ID: " << m_id << std::endl;
-    if (d_srcMap)
-        cudaFree(d_srcMap);
-    if (d_sinkMap)
-        cudaFree(d_sinkMap);
-    if (d_denseMat)
-        cudaFree(d_denseMat);
-    if (d_Qmat)
-        cudaFree(d_Qmat);
-    if (d_Rmat)
-        cudaFree(d_Rmat);
+
 
     d_srcMap = nullptr;
     d_sinkMap = nullptr;
@@ -54,43 +43,64 @@ void GPUTask::generateRandomMaps(int matrixSize)
 
 void GPUTask::generateRandomMatrices()
 {
+    //set all value to one for debugging
     if (m_R == 0)
     {
         m_denseMat.resize(m_M * m_N);
         for (auto &val : m_denseMat)
-            val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
+            val = make_cuComplex(1.0f, 0.0f);
+            //val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
     }
     else
     {
         m_Qmat.resize(m_M * m_R);
         m_Rmat.resize(m_R * m_N);
         for (auto &val : m_Qmat)
-            val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
+            val = make_cuComplex(1.0f, 0.0f);
+            //val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
+            //val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
         for (auto &val : m_Rmat)
-            val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
+            val = make_cuComplex(1.0f, 0.0f);
+            //val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
+            //val = make_cuComplex(static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX);
     }
 }
 
 void GPUTask::uploadToDevice()
 {
-    cudaMalloc(&d_srcMap, sizeof(int) * m_N);
-    cudaMemcpyAsync(d_srcMap, m_srcMap.data(), sizeof(int) * m_N, cudaMemcpyHostToDevice, m_stream);
+    //cudaMalloc(&d_srcMap, sizeof(int) * m_N);
+    //cudaMemcpyAsync(d_srcMap, m_srcMap.data(), sizeof(int) * m_N, cudaMemcpyHostToDevice, m_stream);
 
-    cudaMalloc(&d_sinkMap, sizeof(int) * m_M);
-    cudaMemcpyAsync(d_sinkMap, m_sinkMap.data(), sizeof(int) * m_M, cudaMemcpyHostToDevice, m_stream);
+  //  cudaMalloc(&d_sinkMap, sizeof(int) * m_M);
+//    cudaMemcpyAsync(d_sinkMap, m_sinkMap.data(), sizeof(int) * m_M, cudaMemcpyHostToDevice, m_stream);
 
+    //printf("m_stream = %p\n", m_stream);
+    //checkCudaErrors( cudaStreamSynchronize(m_stream));
+    //printf("m_R = %d, m_M = %d, m_N = %d\n", m_R, m_M, m_N);
     if (m_R == 0)
     {
-        cudaMalloc(&d_denseMat, sizeof(cuComplex) * m_M * m_N);
-        cudaMemcpyAsync(d_denseMat, m_denseMat.data(), sizeof(cuComplex) * m_M * m_N, cudaMemcpyHostToDevice, m_stream);
+       // printf("d_denseMat = %p, m_denseMat.size() = %zu\n", d_denseMat, m_denseMat.size());
+        size_t sizeDenceMat = m_M * m_N * sizeof(cuComplex);
+        checkCudaErrors(cudaMemcpyAsync(d_denseMat, m_denseMat.data(), sizeDenceMat, cudaMemcpyDefault, 0));
     }
     else
     {
-        cudaMalloc(&d_Qmat, sizeof(cuComplex) * m_M * m_R);
-        cudaMemcpyAsync(d_Qmat, m_Qmat.data(), sizeof(cuComplex) * m_M * m_R, cudaMemcpyHostToDevice, m_stream);
-
-        cudaMalloc(&d_Rmat, sizeof(cuComplex) * m_R * m_N);
-        cudaMemcpyAsync(d_Rmat, m_Rmat.data(), sizeof(cuComplex) * m_R * m_N, cudaMemcpyHostToDevice, m_stream);
+       // printf("d_Qmat = %p, m_Qmat.size() = %zu\n", d_Qmat, m_Qmat.size());
+       // printf("d_Rmat = %p, m_Rmat.size() = %zu\n", d_Rmat, m_Rmat.size());
+        size_t sizeQmat = m_M * m_R * sizeof(cuComplex);
+        size_t sizeRmat = m_R * m_N * sizeof(cuComplex);
+        //cuComplex *h_test = (cuComplex *)malloc(sizeQmat);
+       // cudaDeviceSynchronize();
+        //cuComplex *d_test = nullptr;
+        //checkCudaErrors(cudaMalloc(&d_test, sizeQmat));
+        //checkCudaErrors( cudaMemcpyAsync(d_Qmat, h_test, sizeQmat, cudaMemcpyHostToDevice, m_stream));
+        //checkCudaErrors( cudaMemcpy(d_Qmat, h_test, 4, cudaMemcpyDefault));
+        //d_Qmat_kernel<<<1, 1 >>>(d_Qmat);
+        //checkCudaErrors( cudaMemcpy(h_test, d_test, 4, cudaMemcpyDefault));
+        //cudaDeviceSynchronize();
+        //exit(0);
+        checkCudaErrors( cudaMemcpyAsync(d_Qmat, m_Qmat.data(), sizeQmat, cudaMemcpyHostToDevice, m_stream));
+        checkCudaErrors( cudaMemcpyAsync(d_Rmat, m_Rmat.data(), sizeRmat,cudaMemcpyHostToDevice, m_stream));
     }
 }
 /*
@@ -125,13 +135,18 @@ void GPUTask::execute()
     assert( m_workspace != nullptr);
     //GEMMSolver *solver = m_solver;
     GPUWorkspace *ws = m_workspace;
+    GEMMSolver *solver = m_solver;
 
-    cuComplex *d_localB = ws->getLocalB(m_N);
-    cuComplex *d_localC = ws->getLocalC(m_M);
-    cuComplex *d_localMat = ws->getLocalMat(m_R);
+  //  ws->printMemoryInfo();
 
-    ws->printMemoryInfo();
-
+    generateRandomMaps(m_matrixSize);
+    //printf("Random maps generated for task ID: %d\n", m_id);
+    generateRandomMatrices();
+    cudaDeviceSynchronize();
+    //printf("Random matrices generated for task ID: %d\n", m_id);
+    uploadToDevice();
+    gather();
+    solve();
     /*
     solver->gather(d_srcMap, d_denseMat, d_localB, m_N, m_M, m_nRHS, m_stream);
 
@@ -149,10 +164,95 @@ void GPUTask::execute()
     */
 }
 
+void GPUTask::gather()
+{
+    //gather data from h_globalB to h_tempB using m_srcMap
+    for(int j=0; j<m_nRHS; j++)
+    {
+        for(int i=0; i<m_N; i++)
+        {
+            h_tempB[j * m_N + i] = h_globalMatB_[m_srcMap[i] + j * m_matrixSize];
+        }
+    }
+    //printf("Gathering data for task ID: %d\n", m_id);
+    //printf("h_tempB: %p\n", h_tempB);
+    //printf("h_globalMatB_: %p\n", h_globalMatB_);
+    //printf("d_localB: %p\n", d_localB);
+    size_t gatherSize = sizeof(cuComplex) * m_nRHS * m_N;
+    //printf("gatherSize: %lu\n", gatherSize);
+    //cudaStreamSynchronize(m_stream);
+    //printf("m_stream: %p\n", m_stream);
+    //cudaStream_t stream_test;
+    //cudaStreamCreate(&stream_test);
+
+
+//    cudaStreamSynchronize(stream_test);
+    //cuComplex *d_localB_test = nullptr;
+    //cudaMallocAsync(&d_localB_test, gatherSize, m_stream);
+  //  cuComplex *h_tempB_test = nullptr;
+  //  cudaMallocHost(&h_tempB_test, gatherSize);
+    //cudaStreamSynchronize(stream_test);
+    //cudaStreamSynchronize(m_stream);
+   // cudaMemcpyAsync(d_localB_test, h_tempB_test, gatherSize, cudaMemcpyHostToDevice, m_stream);
+   // cudaFreeAsync(d_localB_test, m_stream);
+    //cudaFreeHost(h_tempB_test);
+   // cudaStreamSynchronize(m_stream);
+
+    cudaMemcpyAsync(d_localB, h_tempB, gatherSize, cudaMemcpyHostToDevice, m_stream);
+}
+
+
 
 void GPUTask::setWorkspace(GPUWorkspace *workspace)
 {
     m_workspace = workspace;
     // Ensure workspace is allocated for the required sizes
     m_workspace->ensureSize(m_M, m_N, m_R);
+    //cudaDeviceSynchronize();
+    h_tempB = m_workspace->getPinnedTempB();
+    h_tempC = m_workspace->getPinnedTempC();
+    d_localB = m_workspace->getLocalB();
+    d_localC = m_workspace->getLocalC();
+    d_localMat = m_workspace->getLocalMat();
+    h_globalMatB_ = m_workspace->getGlobalMatB();
+    h_globalMatC_ = m_workspace->getGlobalMatC();
+    d_Qmat = m_workspace->getQmat();
+    d_Rmat = m_workspace->getRmat();
+
+    
+    printf("GPUTask::setWorkspace: h_tempB: %p\n", h_tempB);
+    printf("GPUTask::setWorkspace: h_globalMatB_: %p\n", h_globalMatB_);
+    printf("GPUTask::setWorkspace: d_localB: %p\n", d_localB);
+    printf("GPUTask::setWorkspace: d_localC: %p\n", d_localC);
+    printf("GPUTask::setWorkspace: d_localMat: %p\n", d_localMat);
+    printf("GPUTask::setWorkspace: h_globalMatC_: %p\n", h_globalMatC_);
+    printf("GPUTask::setWorkspace: d_Qmat: %p\n", d_Qmat);
+    printf("GPUTask::setWorkspace: d_Rmat: %p\n", d_Rmat);
+    
+}
+
+void GPUTask::solve()
+{
+    assert(m_solver != nullptr && m_workspace != nullptr);
+    GPUWorkspace *ws = m_workspace;
+    GEMMSolver *solver = m_solver;
+
+    //printf("GPUTask::solve: d_denseMat: %p, d_Qmat: %p, d_Rmat: %p\n", d_denseMat, d_Qmat, d_Rmat);
+    //printf("GPUTask::solve: m_M: %d, m_N: %d, m_R: %d\n", m_M, m_N, m_R);
+
+    if (m_R == 0)
+    {
+        //printf("GPUTask::solve: solving with dense matrix\n");
+        solver->gemm(d_denseMat, d_localB, d_localC, m_M, m_N, m_nRHS);
+    }
+    else
+    {
+        //printf("GPUTask::solve: solving with Q and R matrices\n");
+        //cudaDeviceSynchronize();
+        solver->gemm(d_Rmat, d_localB, d_localMat, m_R, m_N, m_nRHS);
+        solver->gemm(d_Qmat, d_localMat, d_localC, m_M, m_R, m_nRHS);
+    }
+
+    //cudaDeviceSynchronize();
+    //exit(0);
 }

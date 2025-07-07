@@ -11,6 +11,17 @@ TaskManager::TaskManager(int nStreams, int nRHS, int matrixSize)
     // find cuda device
     findCudaDevice(0, nullptr);
 
+    h_globalMatB_ = nullptr; // Initialize the global matrix B pointer
+    size_t sizeB = m_nRHS * m_matrixSize * sizeof(cuComplex);
+    h_globalMatB_ = (cuComplex*)malloc(sizeB);
+
+    printf("h_globalMatB_ = %p\n", h_globalMatB_);
+
+    //init global matrix B to 1.0
+    cuComplex one = make_cuComplex(1.0f, 0.0f);
+    for (int i = 0; i < m_nRHS * m_matrixSize; ++i) {
+        h_globalMatB_[i] = one; // Initialize to 1.0    
+    }
 
 }
 
@@ -18,6 +29,14 @@ TaskManager::~TaskManager() {
 //    for (auto &stream : m_streams) {
   //      cudaStreamDestroy(stream);
    // }
+
+   //...
+    free(h_globalMatB_); // Free the global matrix B memory
+    h_globalMatB_ = nullptr;
+
+    cudaDeviceSynchronize(); // Ensure all tasks are completed before cleanup
+    cudaDeviceReset();
+
    std::cout << "Destroying TaskManager with " << m_tasks.size() 
              << " tasks and " << m_batch_tasks.size() 
              << " batch tasks." << std::endl;
@@ -33,7 +52,7 @@ void TaskManager::runAll() {
     printf("Max number of streams: %d\n", max_num_streams);
     //
    // int numStreams = 8; // Or use m_tasks.size() or a parameter
-    StreamThreadPool pool(m_nStreams, m_nRHS, m_matrixSize, m_tasks);
+    StreamThreadPool pool(m_nStreams, m_nRHS, m_matrixSize, m_tasks, h_globalMatB_);
 
     pool.wait();
 }

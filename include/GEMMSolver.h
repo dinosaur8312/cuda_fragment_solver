@@ -8,7 +8,7 @@
 
 class GEMMSolver {
 public:
-    GEMMSolver(cudaStream_t stream = 0);
+    GEMMSolver();
     ~GEMMSolver();
 
     void gemm(const cuComplex* A, const cuComplex* B, cuComplex* C,
@@ -27,6 +27,8 @@ public:
                  const int ldin,
                   const int ldout,
                  const int reps);
+
+    void setStream(cudaStream_t stream);
 
 
 

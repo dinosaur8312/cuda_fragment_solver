@@ -13,7 +13,9 @@
 
 class StreamThreadPool {
 public:
-    StreamThreadPool(int num_workers, int nRHS, int matrixSize, const std::vector<GPUTask*>& tasks);
+    StreamThreadPool(int num_workers, int nRHS, int matrixSize, 
+                    const std::vector<GPUTask*>& tasks,
+                    cuComplex* h_globalMatB);
     ~StreamThreadPool();
 
    // void enqueueTask(GPUTask* task);
@@ -23,13 +25,17 @@ private:
     void workerLoop(int worker_id);
 
     int num_workers_;
-    std::vector<GPUWorkspace *> ws_; // Each worker has its own workspace
-    std::vector<cudaStream_t> streams_;
+    //std::vector<GPUWorkspace *> ws_; // Each worker has its own workspace
+   // std::vector<cudaStream_t> streams_;
     std::vector<std::thread> threads_;
-    std::vector<GEMMSolver *> solvers_; // Each worker has its own GEMMSolver
+    //std::vector<GEMMSolver *> solvers_; // Each worker has its own GEMMSolver
     std::queue<GPUTask*> task_queue_;
     std::mutex queue_mutex_;
     std::condition_variable queue_cv_;
     std::atomic<bool> stop_{false};
     std::atomic<int> in_flight_tasks_{0};
+
+    cuComplex* h_globalMatB_;
+    int nRHS_;
+    int matrixSize_;
 };

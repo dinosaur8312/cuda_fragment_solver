@@ -31,6 +31,7 @@ private:
     //std::vector<GPUBatchTask *> m_batch_tasks;
     std::map <std::tuple<int, int, int>, GPUBatchTask *> m_batch_tasks;
     int m_nStreams;
+    cuComplex *h_globalMatB_ = nullptr; // Host global matrix B shared across all threads
 
     
 
