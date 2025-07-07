@@ -41,29 +41,7 @@ void GEMMSolver::gemm(const cuComplex *A, const cuComplex *B, cuComplex *C,
     //printf("GEMMSolver::gemm: A: %p, B: %p, C: %p\n", (void*)A, (void*)B, (void*)C);
     printf("GEMMSolver::gemm: M: %d, K: %d, N: %d\n", M, K, N);
 
-    //verify_pointers_kernel<<<1, 1, 0, m_stream>>>(A, B, C);
-    /*
-    cudaDeviceSynchronize(); // Ensure the kernel has completed before proceeding
-    cublasHandle_t handle ;
-    cublasCreate(&handle);
-    cudaStream_t currentStream;
-    cudaStreamCreate(&currentStream);
-    cublasSetStream(handle, currentStream);
-    cuComplex* d_C_test;
-    cuComplex* d_A_test;
-    cuComplex* d_B_test;
-    cudaMallocAsync(&d_A_test, M * K * sizeof(cuComplex), currentStream);
-    cudaMallocAsync(&d_B_test, K * N * sizeof(cuComplex), currentStream);
-    cudaMallocAsync(&d_C_test, M * N * sizeof(cuComplex), currentStream);
-    cublasCgemm(handle,
-                CUBLAS_OP_N, CUBLAS_OP_N,
-                M, N, K,
-                &alpha,
-                d_A_test, M,
-                d_B_test, K,
-                &beta,
-                d_C_test, M);   
-                */
+
     cublasCgemm(m_handle,
                 CUBLAS_OP_N, CUBLAS_OP_N,
                 M, N, K,

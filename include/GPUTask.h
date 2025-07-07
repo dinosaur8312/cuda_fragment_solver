@@ -98,4 +98,5 @@ private:
     }
 */
     void gather();
+    void scatter();
 };
