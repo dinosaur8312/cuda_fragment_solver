@@ -14,6 +14,9 @@ public:
 
     void execute();
 
+    int maxtrixSize() const { return m_matrixSize; }
+    int nRHS() const { return m_nRHS; }
+
     int M() const { return m_M; }
     int N() const { return m_N; }
     int R() const { return m_R; }
@@ -28,20 +31,16 @@ public:
     const std::vector<cuComplex> &getQmat() const { return m_Qmat; }
     const std::vector<cuComplex> &getRmat() const { return m_Rmat; }
 
-    void setSrcMap(const std::vector<int> &srcMap) { m_srcMap = srcMap; }
-    void setSinkMap(const std::vector<int> &sinkMap) { m_sinkMap = sinkMap; }
-    void setDenseMat(const std::vector<cuComplex> &denseMat) { m_denseMat = denseMat; }
-    void setQmat(const std::vector<cuComplex> &Qmat) { m_Qmat = Qmat; }
-    void setRmat(const std::vector<cuComplex> &Rmat) { m_Rmat = Rmat; }
 
     void setSolver(GEMMSolver *solver) { m_solver = solver; }
     void setWorkspace(GPUWorkspace *workspace);
 
     void uploadToDevice();
     void solve();
-private:
     void generateRandomMaps(int matrixSize);
     void generateRandomMatrices();
+    void generateRandomPaddedMatrices(int M_pad, int N_pad, int R_pad);
+private:
 
 
     int m_M, m_N, m_R, m_id;
@@ -51,8 +50,6 @@ private:
     std::vector<int> m_srcMap, m_sinkMap;
     std::vector<cuComplex> m_denseMat, m_Qmat, m_Rmat;
 
-    int *d_srcMap = nullptr;
-    int *d_sinkMap = nullptr;
     cuComplex *d_denseMat = nullptr;
     cuComplex *d_Qmat = nullptr;
     cuComplex *d_Rmat = nullptr;

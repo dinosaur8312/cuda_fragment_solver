@@ -95,7 +95,7 @@ __global__ void Qmat_access_kernel(cuComplex *d_Qmat)
 
 void GPUWorkspace::ensureSize(int M, int N, int R)
 {
-  //  printf("GPUWorkspace::ensureSize() m_stream %p M = %d, N = %d, R = %d\n", m_stream, M, N, R);
+   // printf("GPUWorkspace::ensureSize() m_stream %p M = %d, N = %d, R = %d\n", m_stream, M, N, R);
     size_t need_localBSize = N * m_nRHS * sizeof(cuComplex);
     size_t need_localCSize = M * m_nRHS * sizeof(cuComplex);
     size_t need_localMatSize = R * m_nRHS * sizeof(cuComplex);
@@ -105,6 +105,7 @@ void GPUWorkspace::ensureSize(int M, int N, int R)
 
     if (need_localBSize > m_localBSize)
     {
+   //     printf("GPUWorkspace::ensureSize() need_localBSize = %zu\n", need_localBSize);
         if (d_localB_)
             cudaFreeAsync(d_localB_, m_stream);
         cudaMallocAsync(&d_localB_, need_localBSize, m_stream);
@@ -120,6 +121,7 @@ void GPUWorkspace::ensureSize(int M, int N, int R)
     }
     if (need_localCSize > m_localCSize)
     {
+        //printf("GPUWorkspace::ensureSize() need_localCSize = %zu\n", need_localCSize);
         if (d_localC_)
             cudaFreeAsync(d_localC_, m_stream);
         cudaMallocAsync(&d_localC_, need_localCSize, m_stream);
@@ -142,6 +144,7 @@ void GPUWorkspace::ensureSize(int M, int N, int R)
     {
         if (need_denseMatSize > m_denseMatSize)
         {
+          //  printf("GPUWorkspace::ensureSize() need_denseMatSize = %zu\n", need_denseMatSize);
             if (d_denseMat)
                 cudaFreeAsync(d_denseMat, m_stream);
             cudaMallocAsync(&d_denseMat, need_denseMatSize, m_stream);

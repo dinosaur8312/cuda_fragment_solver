@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
         manager.loadTasksFromMIL(milFile);
         manager.printTasks();
         manager.runAll();
+        manager.runAllBatch();
     } catch (const std::exception &ex) {
         std::cerr << "Exception: " << ex.what() << std::endl;
         return 1;

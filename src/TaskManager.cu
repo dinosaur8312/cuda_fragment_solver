@@ -6,6 +6,7 @@
 #include "helper_cuda.h"
 #include "utils.h"
 #include "StreamThreadPool.h"
+#include "BatchStreamThreadPool.h"
 TaskManager::TaskManager(int nStreams, int nRHS, int matrixSize)
     : m_nRHS(nRHS), m_matrixSize(matrixSize), m_nStreams(nStreams) {
     // find cuda device
@@ -55,6 +56,13 @@ void TaskManager::runAll() {
     StreamThreadPool pool(m_nStreams, m_nRHS, m_matrixSize, m_tasks, h_globalMatB_);
 
     pool.wait();
+}
+
+void TaskManager::runAllBatch() {
+    printf("Running all batch tasks...\n");
+    BatchStreamThreadPool pool(m_nStreams, m_nRHS, m_matrixSize, m_batch_tasks, h_globalMatB_);
+    pool.wait();
+    // Run all batch tasks in parallel
 }
 
 void TaskManager::loadTasksFromMIL(const std::string &filePath) {

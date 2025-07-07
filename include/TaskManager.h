@@ -21,6 +21,7 @@ public:
     void addTask(GPUTask* task);
     void printTasks() const;
     void runAll();
+    void runAllBatch();
     void loadTasksFromMIL(const std::string& filePath);
 
 private:
