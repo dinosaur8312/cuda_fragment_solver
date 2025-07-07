@@ -128,7 +128,6 @@ Depending on the rank and decomposition, the solver may perform one or two GEMMs
 ### Build Instructions
 
 ```bash
-git clone https://github.com/<yourname>/cuda_fragment_solver.git
 cd cuda_fragment_solver
 mkdir build && cd build
 cmake ..
